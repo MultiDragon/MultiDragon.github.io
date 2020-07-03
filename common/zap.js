@@ -10,7 +10,7 @@ const combos = {
 const squirtValues = [ 21, 30, 56, 80, 115, 120, 132, 172, 190 ]
 const squirtNames = [ "Balloon", "Seltzer", "Hose", "Storm", "Geyser", "LuredStorm", "PreluredStorm", "LuredGeyser", "PreluredGeyser" ]
 const squirtCosts = { 0: 0, Any: 1, Balloon: 2, Seltzer: 3, Hose: 15, Storm: 30, Geyser: 65, 
-	LuredStorm: 100, PreluredStorm: 102, LuredGeyser: 115, PreluredGeyser: 117 }
+	LuredStorm: 200, PreluredStorm: 202, LuredGeyser: 215, PreluredGeyser: 217 }
 
 function checkCombo(combo, g1, g2, lifes) {
 	if (!combos[combo] || !zapValues[g1] || !zapValues[g2]) return [false] // combo or gags don't exist
