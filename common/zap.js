@@ -109,6 +109,7 @@ function edit() {
 }
 
 $(() => {
+	edit()
 	$("input[type=checkbox]").on("click", edit)
 	$("input[type=text]").on("keyup", edit)
 })
