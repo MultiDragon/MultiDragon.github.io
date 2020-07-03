@@ -2,10 +2,10 @@
 const zapValues = { Taser: 24, TV: 40, Tesla: 66, Lightning: 80 }
 const zapCosts = { Taser: 10, TV: 30, Tesla: 75, Lightning: 140 }
 const combos = {
+	"x-x-": { first: [2, 2.5, 3, 0], second: [3, 0, 2.5, 2] },
 	Straight: { first: [2, 2.5, 3, 0], second: [0, 3, 2.5, 2] },
 	Cross: { first: [2.5, 3, 2, 0], second: [0, 2.5, 3, 2] },
-	"xx--": { first: [2.5, 3, 2, 0], second: [3, 2.5, 0, 2] },
-	"x-x-": { first: [2, 2.5, 3, 0], second: [3, 0, 2.5, 2] }
+	"xx--": { first: [2.5, 3, 2, 0], second: [3, 2.5, 0, 2] }
 }
 const squirtValues = [ 21, 30, 56, 80, 115, 120, 132, 172, 190 ]
 const squirtNames = [ "Balloon", "Seltzer", "Hose", "Storm", "Geyser", "LuredStorm", "PreluredStorm", "LuredGeyser", "PreluredGeyser" ]
