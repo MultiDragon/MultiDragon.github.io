@@ -1,0 +1,55 @@
+#combo {
+	width: 592px;
+	height: 512px;
+	position: relative;
+}
+
+#zap1, #zap2, #squirt1, #squirt2 {
+	position: absolute;
+	height: 64px;
+	width: 64px;
+	display: block;
+	border: 0;
+}
+
+#zap1, #zap2 {
+	top: 370px;
+}
+
+#squirt1, #squirt2 {
+	top: 38px;
+}
+
+.xx-- #zap1 {
+	left: 192px;
+}
+.xx-- #zap2 {
+	left: 48px;
+}
+
+.x-x- #zap1 {
+	left: 336px;
+}
+.x-x- #zap2 {
+	left: 48px;
+}
+
+.Straight #zap1, .Cross #zap1 {
+	left: 336px;
+}
+.Straight #zap2, .Cross #zap2 {
+	left: 192px;
+}
+
+#squirt1.left {
+	left: 50px;
+}
+#squirt1.right {
+	left: 194px;
+}
+#squirt2.left {
+	left: 338px;
+}
+#squirt2.right {
+	left: 482px;
+}
