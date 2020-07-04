@@ -5,34 +5,26 @@
 	},
 	"items": [
 		{
-			"id": "portfolio",
-			"url": "http://multidragon.github.io/index.html",
-			"codeURL": "https://github.com/multidragon/multidragon.github.io",
-			"language": "en",
-			"name": "My portfolio",
-			"description": "The list of my programming projects"
-		},
-		{
 			"id": "php_conduit",
 			"url": "https://v2020-b2.179.ru",
 			"codeURL": "https://gitlab.com/multidragon/conduitnet-9",
 			"language": "ru",
 			"name": "Conduit Online",
-			"description": "A web application for editing and displaying problem sheets and scores for them"
+			"description": "A web application for editing_and_displaying problem_sheets and scores_for_them"
 		},
 		{
 			"id": "bughouse",
 			"url": "http://bughousejs.herokuapp.com",
 			"language": "en",
 			"name": "Bughouse Client",
-			"description": "A web application that allows playing Bughouse Chess through the network"
+			"description": "A web application that allows playing Bughouse_Chess over_network"
 		},
 		{
 			"id": "dreadfish",
 			"url": "http://dreadfish.herokuapp.com",
 			"language": "en",
 			"name": "Dreadfish",
-			"description": "Online deck analyser for Penny Dreadful Magic: the Gathering format"
+			"description": "Online deck analyser for Penny_Dreadful Magic_the_Gathering format"
 		},
 		{
 			"id": "solution_system",
@@ -47,7 +39,7 @@
 			"codeURL": "http://multidragon.github.io/common/zap.js",
 			"language": "en",
 			"name": "Zap Calculator",
-			"description": "A client-side calculator for Toontown: Corporate Clash zap combos"
+			"description": "A client-side calculator for Toontown_Corporate_Clash zap combos"
 		}
 	]
 }

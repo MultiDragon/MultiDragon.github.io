@@ -1,45 +1,49 @@
 class Grid {
+	data;
 	constructor(json) {
 		this.url = json
 	}
 
-	load() {
-		$.get(this.url, e => {
-			const data = JSON.parse(e)
+	load(selector) {
+		$.get(this.url, data => {
+			if (typeof data === "string")
+				data = JSON.parse(data)
 			this.data = data.items
 			if (this.data.constructor.name !== "Array")
 				this.data = []
 			this.metadata = data.metadata
-		})
-	}
 
-	display(selector) {
-		const block1 = $(selector)
-		block1.empty()
-		const block = $("<div>").addClass("grid-wrapper")
-		for (let i of this.data) {
-			const current = $("<div>").addClass("grid-element").attr("id", i.id)
-			Grid.fill(current, this.metadata, i)
-			current.appendTo(block1)
-		}
-		block.appendTo(block1)
+			const block1 = $(selector)
+			block1.empty()
+			const block = $("<div>").addClass("grid-wrapper")
+			for (let i of this.data) {
+				const current = $("<div>").addClass("grid-element").attr("id", i.id)
+				Grid.fill(current, this.metadata, i)
+				current.appendTo(block)
+			}
+			block.appendTo(block1)
+		}).catch(console.error)
 	}
 
 	static fill(block, metadata, obj) {
 		switch (metadata.type) {
 			case "projects":
-				const { url, codeURL, name, description, language } = obj
-				const linkBase = $("<a>").attr("href", url).appendTo(block)
-				$("<h4>").html(name).appendTo(linkBase)
+				const top = $("<div>").addClass("grid-element-top")
+
+				const language = obj.language === "en" ? "us" : obj.language
+				const { url, codeURL, name, description } = obj
+				$("<a>").addClass("h4").html(name).attr("href", url).appendTo(top)
 
 				if (codeURL) {
 					const { codeLinkContent } = metadata
-					const linkCode = $("<a>").attr("href", codeURL).appendTo(block)
-					$("<h5>").html(codeLinkContent).appendTo(linkCode)
+					$("<a>").addClass("h5").html(codeLinkContent).attr("href", codeURL).appendTo(top)
 				}
 
-				$("<img>").addClass("icon").attr("src", `https://www.countryflags.io/${language}/shiny/64.png`).appendTo(block)
-				$("<p>").html(description).appendTo(block)
+				$("<img>").addClass("icon").attr("src", `https://www.countryflags.io/${language}/shiny/64.png`).appendTo(top)
+				top.appendTo(block)
+
+				const bottom = $("<div>").addClass("grid-element-bottom").appendTo(block)
+				$("<p>").html(description.replace(/_/g, "&nbsp;")).appendTo(bottom)
 
 				break
 		}

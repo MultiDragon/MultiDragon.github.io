@@ -1,22 +1,29 @@
 body {
 	background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+	padding: 20px 20px 0 20px;
 }
 
-.grid-element {
-	position: relative;
-	background: linear-gradient(whitesmoke, lightblue);
+h2 {
+	color: whitesmoke;
+	text-align: center;
+	font-size: 46px;
 }
 
-.grid-element:after {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: 0;
+#contact-wrapper {
+	text-align: center;
 	width: 100%;
-	height: 50%;
-	background: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.2));
+	margin-top: 20px;
 }
 
-.grid-element:hover {
-	background: linear-gradient(lightblue, lightcyan);
+#contact {
+	display: inline-block;
+	height: 40px;
+	line-height: 40px;
+	width: 300px;
+	border-radius: 20px;
+	background: linear-gradient(90deg, #fcff9e 0%, #c67700 100%);
+	text-decoration: none;
+	font-size: 30px;
+	color: black;
+	font-weight: bold;
 }

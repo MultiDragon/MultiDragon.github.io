@@ -1,34 +1,62 @@
 .grid-wrapper {
-	text-align: center;
-	width: 100%;
+	display: flex;
+	flex-flow: row wrap;
 }
 
 .grid-element {
-	display: inline-block;
-	margin: 0;
-	padding: 5px;
-	text-align: left;
-	width: 400px;
+	flex: 1 1 500px;
+	margin: 5px;
+	border: 1px solid black;
 	position: relative;
 	background: rgba(0, 0, 0, 0.5);
+	height: 200px;
+	font-size: 18px;
+}
+
+.grid-element-top {
+	position: absolute;
+	width: calc(100% - 10px);
+	height: calc(50% - 5px);
+	left: 5px;
+	top: 5px;
+}
+
+.grid-element-bottom {
+	position: absolute;
+	width: calc(100% - 10px);
+	height: calc(50% - 5px);
+	left: 5px;
+	bottom: 5px;
 }
 
 .grid-element .icon {
+	position: absolute;
 	right: 0;
 	top: 0;
 }
 
-.grid-element h4 {
-	font-size: 20px;
+.grid-element a {
+	text-decoration: none;
+	font-family: serif;
+}
+
+.grid-element .h4 {
+	display: block;
+	font-weight: bold;
+	margin: 0.3em 0;
+	font-size: 160%;
 	color: lightgray;
 }
 
-.grid-element h5 {
-	font-size: 16px;
+.grid-element .h5 {
+	display: block;
+	font-weight: bold;
+	margin: 0.2em 0;
+	font-size: 125%;
 	color: dimgray;
 }
 
 .grid-element p {
-	font-size: 14px;
 	color: lightgray;
+	font-family: Helvetica, Arial, serif;
 }
