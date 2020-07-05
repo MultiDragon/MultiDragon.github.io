@@ -2,10 +2,10 @@
 const zapValues = { Taser: 24, TV: 40, Tesla: 66, Lightning: 80 }
 const zapCosts = { Taser: 10, TV: 30, Tesla: 75, Lightning: 140 }
 const combos = {
-	"x-x-": { first: [2, 2.5, 3, 0], second: [3, 0, 2.5, 2] },
-	Straight: { first: [2, 2.5, 3, 0], second: [0, 3, 2.5, 2] },
-	Cross: { first: [2.5, 3, 2, 0], second: [0, 2.5, 3, 2] },
-	"xx--": { first: [2.5, 3, 2, 0], second: [3, 2.5, 0, 2] }
+	"x-x-": { first: [2, 2.5, 3, 0], second: [3, 0, 2.5, 2], needToBeAlive: [0, 2] },
+	Straight: { first: [2, 2.5, 3, 0], second: [0, 3, 2.5, 2], needToBeAlive: [1] },
+	Cross: { first: [2.5, 3, 2, 0], second: [0, 2.5, 3, 2], needToBeAlive: [2] },
+	"xx--": { first: [2.5, 3, 2, 0], second: [3, 2.5, 0, 2], needToBeAlive: [0, 1] }
 }
 const squirtValues = [ 21, 30, 56, 80, 115, 120, 132, 172, 190 ]
 const squirtNames = [ "Balloon", "Seltzer", "Hose", "Storm", "Geyser", "LuredStorm", "PreluredStorm", "LuredGeyser", "PreluredGeyser" ]
@@ -17,6 +17,9 @@ function checkCombo(combo, g1, g2, lifes) {
 	if (zapValues[g1] > zapValues[g2]) return [false] // bad combo crossing
 	const damages = [0, 0, 0, 0]
 	for (let i = 0; i < 4; i++) damages[i] += zapValues[g1] * combos[combo].first[i]
+	for (let i of combos[combo].needToBeAlive)
+		if (damages[i] >= lifes[i])
+			return [false] // overkill on a important cog
 	for (let i = 0; i < 4; i++) damages[i] += zapValues[g2] * combos[combo].second[i]
 	const needed = []
 	for (let i = 0; i < 4; i++) needed[i] = Math.max(0, lifes[i] - damages[i])
@@ -42,16 +45,20 @@ function checkCombo(combo, g1, g2, lifes) {
 		answer[1] = "Any"
 		answer[3] = "Any"
 	} else if (count == 1) {
-		if (answer[1] || answer[2])
+		if (answer[1])
+			answer[3] = "Any"
+		else if (answer[2])
 			answer[4] = "Any"
-		else
+		else if (answer[3])
 			answer[1] = "Any"
+		else
+			answer[2] = "Any"
 	}
 
 	return answer
 }
 
-function findBestCombo(lifes) {
+function findBestCombo(lifes, nopresquirt) {
 	let answer = false
 	let cost = 1000
 	for (let i in combos)
@@ -59,6 +66,7 @@ function findBestCombo(lifes) {
 			for (let k in zapCosts) {
 				const microans = checkCombo(i, j, k, lifes)
 				if (!microans[0]) continue
+				if (nopresquirt && ((microans[1] && microans[2]) || (microans[3] && microans[4]))) continue
 				microans.splice(0, 1, i, j, k)
 				let localcost = zapCosts[j] + zapCosts[k]
 				for (let l = 3; l < 7; l++) localcost += squirtCosts[microans[l]]
@@ -70,9 +78,9 @@ function findBestCombo(lifes) {
 	return answer
 }
 
-function findBestComboBase(levels, exes) {
+function findBestComboBase(levels, exes, nopresquirt) {
 	const lifes = levels.map((v, k) => (v + 1) * (v + 2) * (exes[k] ? 1.5 : 1))
-	return findBestCombo(lifes)
+	return findBestCombo(lifes, nopresquirt)
 }
 
 function edit() {
@@ -86,7 +94,8 @@ function edit() {
 		if (str.indexOf("exe") > -1)
 			exes[i] = true
 	}
-	const ans = findBestComboBase(levels, exes)
+	const nopresquirt = $("#only13").is(":checked")
+	const ans = findBestComboBase(levels, exes, nopresquirt)
 	if (!ans) {
 		$("#answer").html("Combo not found")
 		$("#combo").css("display", "none")
