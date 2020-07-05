@@ -66,7 +66,7 @@ function findBestCombo(lifes, nopresquirt) {
 			for (let k in zapCosts) {
 				const microans = checkCombo(i, j, k, lifes)
 				if (!microans[0]) continue
-				if (nopresquirt && ((microans[1] && microans[2]) || (microans[3] && microans[4]))) continue
+				if (nopresquirt && ((microans[1] && microans[4]) || (microans[3] && microans[2]))) continue
 				microans.splice(0, 1, i, j, k)
 				let localcost = zapCosts[j] + zapCosts[k]
 				for (let l = 3; l < 7; l++) localcost += squirtCosts[microans[l]]
