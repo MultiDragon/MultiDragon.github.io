@@ -40,6 +40,14 @@
 			"language": "en",
 			"name": "Zap Calculator",
 			"description": "A client-side calculator for Toontown_Corporate_Clash zap combos"
+		},
+		{
+			"id": "zap_calculator",
+			"url": "http://multidragon.github.io/ttcc-new.html",
+			"codeURL": "http://multidragon.github.io/common/ttcc-calculator.js",
+			"language": "en",
+			"name": "TTCC Attack Calculator",
+			"description": "A client-side calculator for Toontown_Corporate_Clash zap/sound/etc combos (updated version)"
 		}
 	]
 }

@@ -1,0 +1,51 @@
+.combo {
+	position: relative;
+	width: 611px;
+	height: 128px;
+	background-color: lightgray;
+}
+
+.combo-gag {
+	position: absolute;
+	width: 128px;
+	height: 128px;
+}
+
+.combo-gag-target {
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	top: 64px;
+}
+
+.cg1 {
+	left: 0;
+}
+.ct1 {
+	left: 64px;
+}
+
+.cg2 {
+	left: 161px;
+}
+.ct2 {
+	left: 225px;
+}
+
+.cg3 {
+	left: 322px;
+}
+.ct3 {
+	left: 386px;
+}
+
+.cg4 {
+	left: 483px;
+}
+.ct4 {
+	left: 547px;
+}
+
+.displaynone {
+	display: none;
+}
