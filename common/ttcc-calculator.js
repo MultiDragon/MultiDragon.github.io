@@ -380,7 +380,7 @@ function edit() {
 			$(`.strat${i}`).addClass("displaynone")
 			$(`#answer${i}`).html("Oops!")
 			$(`#combo${i} .combo-gag`).attr("src", "resources/new/unknown.png")
-			$(`#combo${i} .combo-gag-target`).attr("src", "resources/new/target-4.png")
+			$(`#combo${i} .combo-gag-target`).attr("src", "resources/new/Target-4.png")
 		} else {
 			$(`.strat${i}`).removeClass("displaynone")
 			const text = ans[i].map(x => {
@@ -392,11 +392,11 @@ function edit() {
 			$(`#answer${i}`).html(text.join(", "))
 			ans[i].forEach((v, k) => {
 				$(`#combo${i} .cg${k + 1}`).attr("src", `resources/new/${v.type}-${v.level}.png`)
-				$(`#combo${i} .ct${k + 1}`).attr("src", `resources/new/target-${v.target}.png`)
+				$(`#combo${i} .ct${k + 1}`).attr("src", `resources/new/Target-${v.target}.png`)
 			})
 			if (ans[i].length === 3) {
 				$(`#combo${i} .cg4`).attr("src", `resources/new/Lure-3.png`)
-				$(`#combo${i} .ct4`).attr("src", "resources/new/target-4.png")
+				$(`#combo${i} .ct4`).attr("src", "resources/new/Target-4.png")
 			}
 		}
 	}
