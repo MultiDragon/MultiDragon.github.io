@@ -260,15 +260,17 @@ function getLevel(life, arr) {
 	return -1
 }
 
-function trySound(levels, gags) {
-	const choices = gags.map(x => ({ type: "Sound", level: x, prestige: "Prestige", target: 4 }))
+function trySound(levels, gags, prestiges) {
+	let i = 0
+	const choices = gags.map(x => ({ type: "Sound", level: x, prestige: i++ < prestiges ? "Prestige" : "", target: 4 }))
 	const state = getState(choices, generateState(levels))
 	const alive = getAliveCogs(state)
 	if (alive.length > 0) return false
 	return choices
 }
-function trySoundDrop(levels, gags, min, max) {
-	const choices = gags.map(x => ({ type: "Sound", level: x, prestige: "Prestige", target: 4 }))
+function trySoundDrop(levels, gags, min, max, prestiges) {
+	let i = 0
+	const choices = gags.map(x => ({ type: "Sound", level: x, prestige: i++ < prestiges ? "Prestige" : "", target: 4 }))
 	const state = getState(choices, generateState(levels))
 	const alive = getAliveCogs(state)
 	if (alive.length !== 1) return false
@@ -277,8 +279,9 @@ function trySoundDrop(levels, gags, min, max) {
 	gags2.push({ type: "Drop", level: Math.max(min, getLevel(alive[0].life, damages.Drop)), target: alive[0].key, prestige: "" })
 	return gags2
 }
-function trySoundDoubleDrop(levels, gags, min, max) {
-	const choices = gags.map(x => ({ type: "Sound", level: x, prestige: "Prestige", target: 4 }))
+function trySoundDoubleDrop(levels, gags, min, max, prestiges) {
+	let i = 0
+	const choices = gags.map(x => ({ type: "Sound", level: x, prestige: i++ < prestiges ? "Prestige" : "", target: 4 }))
 	const state = getState(choices, generateState(levels))
 	const alive = getAliveCogs(state)
 	if (alive.length !== 2) return false
@@ -317,12 +320,12 @@ function tryDoubleZap(levels, firstZap, firstZapPlacement, secondZap, secondZapP
 	return choices
 }
 
-function generateOptimalStrategy(levels, minGagLevel = 4, maxGagLevel = 8, hasDoublePrestige = true) {
+function generateOptimalStrategy(levels, minGagLevel = 4, maxGagLevel = 8, prestigeSounds = 4, hasDoublePrestige = true) {
 	const strategies = []
 	// trying 3 sound
 	strategies[0] = false
 	for (const i of traverse(3, minGagLevel, maxGagLevel)) {
-		const x = trySound(levels, i)
+		const x = trySound(levels, i, prestigeSounds)
 		if (getCost(strategies[0]) > getCost(x))
 			strategies[0] = x
 	}
@@ -330,7 +333,7 @@ function generateOptimalStrategy(levels, minGagLevel = 4, maxGagLevel = 8, hasDo
 	// trying 4 sound
 	strategies[1] = false
 	for (const i of traverse(4, minGagLevel, maxGagLevel)) {
-		const x = trySound(levels, i)
+		const x = trySound(levels, i, prestigeSounds)
 		if (getCost(strategies[1]) > getCost(x))
 			strategies[1] = x
 	}
@@ -338,7 +341,7 @@ function generateOptimalStrategy(levels, minGagLevel = 4, maxGagLevel = 8, hasDo
 	// trying 3 sound 1 drop
 	strategies[2] = false
 	for (const i of traverse(3, minGagLevel, maxGagLevel)) {
-		const x = trySoundDrop(levels, i, minGagLevel, maxGagLevel)
+		const x = trySoundDrop(levels, i, minGagLevel, maxGagLevel, prestigeSounds)
 		if (getCost(strategies[2]) > getCost(x))
 			strategies[2] = x
 	}
@@ -346,7 +349,7 @@ function generateOptimalStrategy(levels, minGagLevel = 4, maxGagLevel = 8, hasDo
 	// trying 2 sound 2 drop
 	strategies[3] = false
 	for (const i of traverse(2, minGagLevel, maxGagLevel)) {
-		const x = trySoundDoubleDrop(levels, i, minGagLevel, maxGagLevel)
+		const x = trySoundDoubleDrop(levels, i, minGagLevel, maxGagLevel, prestigeSounds)
 		if (getCost(strategies[3]) > getCost(x))
 			strategies[3] = x
 	}
@@ -372,8 +375,9 @@ function edit() {
 	for (let i = 0; i < 4; i++)
 		levels.push($(`#level-${i}`).val())
 	const doublePrestigeSquirt = $("#doublepre").is(":checked")
+	const prestigeSounds = parseInt($("#presound").val())
 	const str = $("#gaglevels").val().split("-")
-	const ans = generateOptimalStrategy(levels, parseInt(str[0]) - 1, parseInt(str[1]), doublePrestigeSquirt)
+	const ans = generateOptimalStrategy(levels, parseInt(str[0]) - 1, parseInt(str[1]), prestigeSounds, doublePrestigeSquirt)
 	for (const i in ans) if (ans.hasOwnProperty(i)) {
 		$(`#cost${i}`).html(getCost(ans[i]))
 		if (!ans[i]) {
