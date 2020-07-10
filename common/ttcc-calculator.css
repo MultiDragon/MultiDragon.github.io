@@ -49,3 +49,12 @@
 .displaynone {
 	display: none;
 }
+
+body, input[type=text] {
+	font-size: 30px;
+}
+
+input[type=checkbox] {
+	width: 30px;
+	height: 30px;
+}
