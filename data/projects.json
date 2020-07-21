@@ -15,6 +15,7 @@
 		{
 			"id": "bughouse",
 			"url": "http://bughousejs.herokuapp.com",
+			"codeURL": "https://gitlab.com/multidragon/bughouse-client",
 			"language": "en",
 			"name": "Bughouse Client",
 			"description": "A web application that allows playing Bughouse_Chess over_network"
@@ -22,6 +23,7 @@
 		{
 			"id": "dreadfish",
 			"url": "http://dreadfish.herokuapp.com",
+			"codeURL": "https://gitlab.com/multidragon/dreadfish",
 			"language": "en",
 			"name": "Dreadfish",
 			"description": "Online deck analyser for Penny_Dreadful Magic_the_Gathering format"
@@ -29,6 +31,7 @@
 		{
 			"id": "solution_system",
 			"url": "http://solsystem.herokuapp.com",
+			"codeURL": "https://gitlab.com/multidragon/solsystem",
 			"language": "en",
 			"name": "Solution System",
 			"description": "A web application for online teacher-pupil communication, solution submission and much more"
