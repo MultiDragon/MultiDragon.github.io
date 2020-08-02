@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<title>TTCC 1.1 Combo Calculator</title>
+		<link rel="stylesheet" href="common/loader.css" />
 		<link rel="stylesheet" href="common/ttcc-calculator.css" />
 		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 		<script src="common/ttcc-calculator.js"></script>
@@ -10,13 +11,13 @@
 	<body>
 		<table>
 			<tr>
-				<td colspan="4"><b>Cog Levels (add <tt>exe</tt> for executives)</b></td>
+				<td colspan="4"><b>Cog Levels (add <tt>exe</tt> for executives, <tt>A</tt> for field specialists, <tt>D</tt> for operation analysts)</b></td>
 			</tr>
 			<tr>
-				<td><input type="text" id="level-0" value="10" /></td>
-				<td><input type="text" id="level-1" value="10" /></td>
-				<td><input type="text" id="level-2" value="10" /></td>
-				<td><input type="text" id="level-3" value="10" /></td>
+				<td><input type="text" id="level-0" value="12" /></td>
+				<td><input type="text" id="level-1" value="12" /></td>
+				<td><input type="text" id="level-2" value="12" /></td>
+				<td><input type="text" id="level-3" value="12" /></td>
 			</tr>
 			<tr>
 				<td colspan="4"><b>Are cogs lured or prelured? (first checkbox is for lured, second for prelured)</b></td>
@@ -44,20 +45,34 @@
 				<td><input type="checkbox" id="doublepre" /></td>
 			</tr>
 			<tr>
-				<td colspan="3"><b>Enter minimum and maximum gag level (example: 4-8 for gags from Bugle to Opera)</b></td>
-				<td><input type="text" id="gaglevels" value="4-8" /></td>
+				<td colspan="2"><b>Check which zap (left or right) is prestige</b></td>
+				<td><input type="checkbox" id="leftpre" checked="" /></td>
+				<td><input type="checkbox" id="rightpre" checked="" /></td>
+			</tr>
+			<tr>
+				<td colspan="3"><b>Enter minimum and maximum gag level (example: 5-8 for gags from Aoogah to Opera, Seltzer to Geyser, etc)</b></td>
+				<td><input type="text" id="gaglevels" value="5-8" /></td>
 			</tr>
 			<tr>
 				<td colspan="3"><b>Enter number of prestige sounds</b></td>
 				<td><input type="text" id="presound" value="4" /></td>
 			</tr>
 			<tr>
+				<td colspan="3"><b>Calculate</b></td>
+				<td><button id="edit">Calculate</button></td>
+			</tr>
+			<tr>
 				<td colspan="4"><b>Answer</b></td>
 			</tr>
-			<tr class="strat0">
+			<tr class="displaynone" id="loadertr">
+				<td>
+					<div id="loader"></div>
+				</td>
+			</tr>
+			<tr class="strat0 strat">
 				<td colspan="4"><b>Strategy 1 (Cost <span id="cost0">0</span>):</b> <span id="answer0"></span></td>
 			</tr>
-			<tr class="strat0">
+			<tr class="strat0 strat">
 				<td colspan="4">
 					<div class="combo" id="combo0">
 						<img class="combo-gag cg1" />
@@ -71,10 +86,10 @@
 					</div>
 				</td>
 			</tr>
-			<tr class="strat1">
+			<tr class="strat1 strat">
 				<td colspan="4"><b>Strategy 2 (Cost <span id="cost1">0</span>):</b> <span id="answer1"></span></td>
 			</tr>
-			<tr class="strat1">
+			<tr class="strat1 strat">
 				<td colspan="4">
 					<div class="combo" id="combo1">
 						<img class="combo-gag cg1" />
@@ -88,10 +103,10 @@
 					</div>
 				</td>
 			</tr>
-			<tr class="strat2">
+			<tr class="strat2 strat">
 				<td colspan="4"><b>Strategy 3 (Cost <span id="cost2">0</span>):</b> <span id="answer2"></span></td>
 			</tr>
-			<tr class="strat2">
+			<tr class="strat2 strat">
 				<td colspan="4">
 					<div class="combo" id="combo2">
 						<img class="combo-gag cg1" />
@@ -105,10 +120,10 @@
 					</div>
 				</td>
 			</tr>
-			<tr class="strat3">
+			<tr class="strat3 strat">
 				<td colspan="4"><b>Strategy 4 (Cost <span id="cost3">0</span>):</b> <span id="answer3"></span></td>
 			</tr>
-			<tr class="strat3">
+			<tr class="strat3 strat">
 				<td colspan="4">
 					<div class="combo" id="combo3">
 						<img class="combo-gag cg1" />
@@ -122,10 +137,10 @@
 					</div>
 				</td>
 			</tr>
-			<tr class="strat4">
+			<tr class="strat4 strat">
 				<td colspan="4"><b>Strategy 5 (Cost <span id="cost4">0</span>):</b> <span id="answer4"></span></td>
 			</tr>
-			<tr class="strat4">
+			<tr class="strat4 strat">
 				<td colspan="4">
 					<div class="combo" id="combo4">
 						<img class="combo-gag cg1" />
@@ -139,6 +154,23 @@
 					</div>
 				</td>
 			</tr>
+			<!--<tr class="strat5">
+				<td colspan="4"><b>Strategy 6 (Cost <span id="cost5">0</span>):</b> <span id="answer5"></span></td>
+			</tr>
+			<tr class="strat5">
+				<td colspan="4">
+					<div class="combo" id="combo5">
+						<img class="combo-gag cg1" />
+						<img class="combo-gag cg2" />
+						<img class="combo-gag cg3" />
+						<img class="combo-gag cg4" />
+						<img class="combo-gag-target ct1" />
+						<img class="combo-gag-target ct2" />
+						<img class="combo-gag-target ct3" />
+						<img class="combo-gag-target ct4" />
+					</div>
+				</td>
+			</tr>-->
 		</table>
 	</body>
 </html>

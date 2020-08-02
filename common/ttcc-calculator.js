@@ -1,5 +1,5 @@
 const damages = {
-	"Trap": [ 20, 30, 45, 60, 85, 140, 200, 240 ],
+	"Trap": [ 20, 30, 45, 65, 90, 140, 200, 240 ],
 	"PrestigeTrap": [ x => 20 + 3*x, x => 30 + 3*x, x => 45 + 3*x, x => 60 + 3*x, x => 85 + 3*x, x => 140 + 3*x, x => 200 + 3*x, x => 240 + 3*x ],
 	"Sound": [ 4, 6, 11, 16, 21, 32, 50, 65 ],
 	"PrestigeSound": [ x => 4 + Math.ceil(x/2), x => 6 + Math.ceil(x/2), x => 11 + Math.ceil(x/2), x => 16 + Math.ceil(x/2),
@@ -8,9 +8,8 @@ const damages = {
 	"Zap": [ 4, 6, 10, 16, 21, 40, 66, 80 ],
 	"Throw": [ 7, 11, 18, 30, 45, 75, 110, 145 ],
 	"PrestigeThrow": [ 8, 13, 20, 33, 50, 83, 121, 160 ],
-	"Drop": [ 12, 20, 35, 50, 70, 120, 180, 220 ]
+	"Drop": [ 12, 20, 35, 55, 75, 125, 180, 220 ]
 }
-const trackLength = 7
 
 function get(source, gagLevel, cogLevel) {
 	const ans = damages[source][gagLevel]
@@ -21,9 +20,13 @@ function generateState(cogLevels) {
 	const state = []
 	for (const i of cogLevels) {
 		const exe  = typeof i === "number" ? false : i.indexOf("exe") > -1
+		const FS   = typeof i === "number" ? false : i.indexOf("A") > -1
+		const OA   = typeof i === "number" ? false : i.indexOf("D") > -1
 		const iNum = typeof i === "number" ? i : parseInt(i)
+		const sq = iNum * iNum
 		if (isNaN(iNum) || iNum < 1) continue
-		state.push({ level: iNum, life: (iNum + 1) * (iNum + 2) * (exe ? 1.5 : 1), lured: 0, soaked: false, trapped: 0 })
+		const baseHealth = FS ? sq + iNum + 1 : (OA ? sq + iNum * 5 + 4 : sq + iNum * 3 + 2)
+		state.push({ level: iNum, life: Math.floor(baseHealth * (exe ? 1.5 : 1)), lured: 0, soaked: false, trapped: 0 })
 	}
 	return state
 }
@@ -32,7 +35,6 @@ function getState(gagChoices, state) {
 	// gagChoices is an array of 4 elements each of following type:
 	// { type: Sound, prestige: "Prestige", level: 0, target: 1 }
 
-	state = JSON.parse(JSON.stringify(state))
 	updateTrapState(state, gagChoices)
 	updateLureState(state, gagChoices)
 	updateSoundState(state, gagChoices)
@@ -58,18 +60,18 @@ function updateTrapState(state, gagChoices) {
 
 function updateLureState(state, gagChoices) {
 	const lured = {}
-	for (const i in state) if (state.hasOwnProperty(i)) lured[i] = 0
+	for (let i = 0; i < state.length; i++) lured[i] = 0
 	for (const i of gagChoices) {
 		const { type, level, target, prestige } = i
 		const num = prestige ? 0.65 : 0.5
 		if (type !== "Lure") continue
 		if (level % 2 === 1)
-			for (const j in state) if (state.hasOwnProperty(j))
+			for (let j = 0; j < state.length; j++)
 				lured[j] = Math.max(lured[j], num)
 		else
 			lured[target] = Math.max(lured[target], num)
 	}
-	for (const i in state) if (state.hasOwnProperty(i)) {
+	for (let i = 0; i < state.length; i++) {
 		if (!lured[i]) continue
 		if (state[i].trapped) {
 			state[i].life = Math.max(state[i].life - state[i].trapped, 0)
@@ -104,7 +106,7 @@ function updateSoundState(state, gagChoices) {
 }
 
 function updateLuredGagState(state, damageCounter) {
-	for (const i in state) if (state.hasOwnProperty(i)) {
+	for (let i = 0; i < state.length; i++) {
 		if (damageCounter[i]) {
 			if (damageCounter[i].numberOfGags > 0) {
 				if (damageCounter[i].numberOfGags > 1)
@@ -121,7 +123,7 @@ function updateLuredGagState(state, damageCounter) {
 
 function updateSquirtState(state, gagChoices) {
 	let damageCounter = {}
-	for (const i in state) if (state.hasOwnProperty(i))
+	for (let i = 0; i < state.length; i++)
 		damageCounter[i] = { damage: 0, numberOfGags: 0, soaksNeighbors: false }
 	for (const i of gagChoices) {
 		const { type, level, target, prestige } = i
@@ -132,11 +134,10 @@ function updateSquirtState(state, gagChoices) {
 			damageCounter[target].soaksNeighbors = true
 	}
 	updateLuredGagState(state, damageCounter)
-	for (const i in state) if (state.hasOwnProperty(i)) {
-		if (damageCounter[i]) {
+	for (let i = 0; i < state.length; i++) {
+		if (damageCounter[i].damage > 0) {
 			state[i].soaked = true
 			if (damageCounter[i].soaksNeighbors) {
-				state[i].soaked = true
 				if (state[i - 1])
 					state[i - 1].soaked = true
 				if (state[i + 1])
@@ -148,9 +149,8 @@ function updateSquirtState(state, gagChoices) {
 
 function updateZapState(state, gagChoices) {
 	const zaps = gagChoices.map((v, k) => {
-		const r = JSON.parse(JSON.stringify(v))
-		r.key = k
-		return r
+		v.key = k
+		return v
 	}).filter(x => x.type === "Zap")
 	zaps.sort((x, y) => {
 		return (x.level < y.level || (x.level === y.level && x.key > y.key)) ? -1 : 1
@@ -162,7 +162,7 @@ function updateZapState(state, gagChoices) {
 		if (type !== "Zap") continue
 		const cog = state[target]
 		const damage = get("Zap", level, cog.level)
-		const targetOrder = [ 0, -1, +1, -2, +2 ]
+		const targetOrder = [ 0, -1, -2, +1, +2 ]
 		const multiplier = prestige ? 1/2 : 3/4
 
 		if (!cog.soaked) // dry zap
@@ -192,7 +192,7 @@ function updateZapState(state, gagChoices) {
 
 function updateThrowState(state, gagChoices) {
 	let damageCounter = {}
-	for (const i in state) if (state.hasOwnProperty(i))
+	for (let i = 0; i < state.length; i++)
 		damageCounter[i] = { damage: 0, numberOfGags: 0 }
 	for (const i of gagChoices) {
 		const { type, level, target, prestige } = i
@@ -205,7 +205,7 @@ function updateThrowState(state, gagChoices) {
 
 function updateDropState(state, gagChoices) {
 	let damageCounter = {}
-	for (const i in state) if (state.hasOwnProperty(i))
+	for (let i = 0; i < state.length; i++)
 		damageCounter[i] = { damage: 0, numberOfGags: 0 }
 	for (const i of gagChoices) {
 		const { type, level, target } = i
@@ -213,7 +213,7 @@ function updateDropState(state, gagChoices) {
 		damageCounter[target].damage += get("Drop", level, state[target].level)
 		damageCounter[target].numberOfGags++
 	}
-	for (const i in state) if (state.hasOwnProperty(i)) {
+	for (let i = 0; i < state.length; i++) {
 		if (damageCounter[i]) {
 			if (damageCounter[i].numberOfGags > 0) {
 				if (damageCounter[i].numberOfGags > 1)
@@ -232,7 +232,7 @@ function updateDropState(state, gagChoices) {
 const relativeCosts = [1, 2, 3, 5, 8, 30, 80, 150]
 const gagMultipliers = { "Sound": 8, "Zap": 10, "Squirt": 4, "Drop": 2 }
 const gagNames = {
-	"Sound": ["Bike Horn", "Whistle", "Kazoo", "Bugle", "Aoogah", "Trunk", "Fog", "Opera"],
+	"Sound": ["Kazoo", "Bike Horn", "Whistle", "Bugle", "Aoogah", "Trunk", "Fog", "Opera"],
 	"Zap": ["Buzzer", "Carpet", "Balloon", "Battery", "Taser", "Broken TV", "Tesla", "Lightning"],
 	"Squirt": ["Flower", "Glass", "Squirtgun", "Water Balloon", "Seltzer", "Hose", "Storm", "Geyser"],
 	"Drop": ["Flower Pot", "Sandbag", "Bowling", "Anvil", "Big Weight", "Safe", "Boulder", "Piano"]
@@ -241,7 +241,7 @@ const gagTargets = ["Left", "Mid Left", "Mid Right", "Right"]
 
 function getAliveCogs(state) {
 	const ans = []
-	for (let i in state) if (state.hasOwnProperty(i))
+	for (let i = 0; i < state.length; i++)
 		if (state[i].life > 0)
 			ans.push({ key: i, life: state[i].life })
 	return ans
@@ -254,121 +254,78 @@ function getCost(gags) {
 	return sum
 }
 
-function getLevel(life, arr) {
-	for (const i in arr)
-		if (arr.hasOwnProperty(i) && arr[i] >= life)
-			return i
-	return -1
+function trySound(targets, gags, params) {
+	let i = 0
+	return gags.map(x => ({ type: "Sound", level: x, prestige: i++ < params.prestigeSounds ? "Prestige" : "", target: 4 }))
 }
 
-function trySound(levels, gags, prestiges) {
+function trySoundDrop(targets, gags, params) {
 	let i = 0
-	const choices = gags.map(x => ({ type: "Sound", level: x, prestige: i++ < prestiges ? "Prestige" : "", target: 4 }))
-	const state = getState(choices, levels)
-	const alive = getAliveCogs(state)
-	if (alive.length > 0) return false
-	return choices
+	const ans = []
+	const len = gags.length - 1
+	for (let j = 0; j < len; j++) ans.push({ type: "Sound", level: gags[j], prestige: i++ < params.prestigeSounds ? "Prestige" : "", target: 4 })
+	ans.push({ type: "Drop", level: gags[len], prestige: "", target: targets[len] })
+	return ans
 }
-function trySoundDrop(levels, gags, min, max, prestiges) {
+
+function trySoundDoubleDrop(targets, gags, params) {
 	let i = 0
-	const choices = gags.map(x => ({ type: "Sound", level: x, prestige: i++ < prestiges ? "Prestige" : "", target: 4 }))
-	const state = getState(choices, levels)
-	const alive = getAliveCogs(state)
-	if (alive.length !== 1) return false
-	if (alive[0].life > damages.Drop[max - 1]) return false
-	const gags2 = JSON.parse(JSON.stringify(choices))
-	gags2.push({ type: "Drop", level: Math.max(min, getLevel(alive[0].life, damages.Drop)), target: alive[0].key, prestige: "" })
-	return gags2
+	const ans = []
+	const len = gags.length - 2
+	for (let j = 0; j < len; j++) ans.push({ type: "Sound", level: gags[j], prestige: i++ < params.prestigeSounds ? "Prestige" : "", target: 4 })
+	ans.push({ type: "Drop", level: gags[len - 1], prestige: "", target: targets[len - 1] })
+	ans.push({ type: "Drop", level: gags[len], prestige: "", target: targets[len] })
+	return ans
 }
-function trySoundDoubleDrop(levels, gags, min, max, prestiges) {
-	let i = 0
-	const choices = gags.map(x => ({ type: "Sound", level: x, prestige: i++ < prestiges ? "Prestige" : "", target: 4 }))
-	const state = getState(choices, levels)
-	const alive = getAliveCogs(state)
-	if (alive.length !== 2) return false
-	if (alive[0].life > damages.Drop[max - 1] || alive[1].life > damages.Drop[max - 1]) return false
-	const gags2 = JSON.parse(JSON.stringify(choices))
-	gags2.push({ type: "Drop", level: Math.max(min, getLevel(alive[0].life, damages.Drop)), target: alive[0].key, prestige: "" })
-	gags2.push({ type: "Drop", level: Math.max(min, getLevel(alive[1].life, damages.Drop)), target: alive[1].key, prestige: "" })
-	return gags2
+
+function tryDoubleZap(targets, gags, params) {
+	const ans = []
+	ans.push({ type: "Zap", level: gags[0], prestige: params.firstZapPrestige ? "Prestige" : "", target: targets[0] })
+	ans.push({ type: "Zap", level: gags[1], prestige: params.secondZapPrestige ? "Prestige" : "", target: targets[1] })
+	ans.push({ type: "Squirt", level: gags[2], prestige: "Prestige", target: targets[2] })
+	ans.push({ type: "Squirt", level: gags[3], prestige: params.doublePrestigeSquirt ? "Prestige" : "", target: targets[3] })
+	return ans
 }
-function tryDoubleZap(baseState, firstZap, firstZapPlacement, secondZap, secondZapPlacement, hasDoublePrestige, min, max, p, q) {
-	const newState = JSON.parse(JSON.stringify(baseState))
-	for (let i of baseState) i.soaked = true
-	const choices = [{ type: "Zap", level: secondZap, prestige: p ? "Prestige" : "", target: secondZapPlacement },
-		{ type: "Zap", level: firstZap, prestige: q ? "Prestige" : "", target: firstZapPlacement }]
-	const state = getState(choices, baseState)
-	const alive = getAliveCogs(state)
-	if (alive.length > 2) return false
-	if (alive.length === 0) {
-		choices.push({ type: "Squirt", level: min, target: 0, prestige: "" })
-		choices.push({ type: "Squirt", level: min, target: 2, prestige: "" })
-	} else if (alive.length === 1) {
-		if (alive[0].life > damages.Squirt[max - 1]) return false
-		const target = alive[0].key == 0 ? 2 : (alive[0].key == 1 ? 3 : (alive[0].key == 2 ? 0 : 1))
-		const life = Math.floor(alive[0].life / (1 + state[alive[0].key].lured))
-		choices.push({ type: "Squirt", level: Math.max(min, getLevel(life, damages.Squirt)), target: alive[0].key, prestige: "Prestige" })
-		choices.push({ type: "Squirt", level: min, target: target, prestige: "Prestige" })
-	} else {
-		if (alive[0].life > damages.Squirt[max - 1] || alive[1].life > damages.Squirt[max - 1]) return false
-		if ((alive[0].key == 0 && alive[1].key == 1) || (alive[0].key == 2 && alive[1].key == 3)) return false
-		if (!hasDoublePrestige && ((alive[0].key == 0 && alive[1].key == 3) || (alive[0].key == 1 && alive[1].key == 2))) return false
-		const life1 = Math.floor(alive[0].life / (1 + state[alive[0].key].lured))
-		const life2 = Math.floor(alive[1].life / (1 + state[alive[1].key].lured))
-		choices.push({ type: "Squirt", level: Math.max(min, getLevel(life1, damages.Squirt)), target: alive[0].key, prestige: "Prestige" })
-		choices.push({ type: "Squirt", level: Math.max(min, getLevel(life2, damages.Squirt)), target: alive[1].key, prestige: "Prestige" })
+
+function tryTyphoon(targets, gags, params) {
+	const ans = []
+	ans.push({ type: "Zap", level: gags[0], prestige: (params.firstZapPrestige || params.secondZapPrestige) ? "Prestige" : "", target: targets[0] })
+	ans.push({ type: "Squirt", level: gags[1], prestige: "Prestige", target: targets[1] })
+	ans.push({ type: "Drop", level: gags[2], prestige: "", target: targets[2] })
+	ans.push({ type: "Sound", level: gags[3], prestige: params.prestigeSounds > 0 ? "Prestige" : "", target: 4 })
+	return ans
+}
+
+function copyState(arr) {
+	return [Object.assign({}, arr[0]), Object.assign({}, arr[1]), Object.assign({}, arr[2]), Object.assign({}, arr[3])]
+}
+
+function test(func, tgt, lvl, lvls, i, params, strategies) {
+	const gags = func(tgt, lvl, params)
+	const state = getState(gags, copyState(lvls))
+	if (getAliveCogs(state).length === 0 && getCost(strategies[i]) > getCost(gags)) {
+		strategies[i] = gags
 	}
-	if (getAliveCogs(getState(choices, newState)).length) return false
-	return choices
 }
 
 function generateOptimalStrategy(levels, params) {
-	const { minGagLevel, maxGagLevel, prestigeSounds, firstZapPrestige, secondZapPrestige, doublePrestigeSquirt } = params
+	const { minGagLevel, maxGagLevel } = params
 	const strategies = []
-	// trying 3 sound
-	strategies[0] = false
-	for (const i of traverse(3, minGagLevel, maxGagLevel)) {
-		const x = trySound(levels, i, prestigeSounds)
-		if (getCost(strategies[0]) > getCost(x))
-			strategies[0] = x
+	const strategyFunctions = [ trySoundDrop, trySoundDoubleDrop, tryDoubleZap, tryTyphoon ]
+	for (let i = 0; i < strategyFunctions.length; i++) {
+		strategies[i] = false
+		for (const levelSequence of getSequence(4, minGagLevel - 1, maxGagLevel - 1))
+			for (const targetSequence of getSequence(4, 0, 3))
+				test(strategyFunctions[i], targetSequence, levelSequence, levels, i, params, strategies)
 	}
 
-	// trying 4 sound
-	strategies[1] = false
-	for (const i of traverse(4, minGagLevel, maxGagLevel)) {
-		const x = trySound(levels, i, prestigeSounds)
-		if (getCost(strategies[1]) > getCost(x))
-			strategies[1] = x
+	for (let i = 3; i < 5; i++) {
+		const num = strategies.length
+		strategies[num] = false
+		for (const levelSequence of traverse(i, minGagLevel - 1, maxGagLevel - 1))
+			test(trySound, false, levelSequence, levels, i, params, strategies)
 	}
-
-	// trying 3 sound 1 drop
-	strategies[2] = false
-	for (const i of traverse(3, minGagLevel, maxGagLevel)) {
-		const x = trySoundDrop(levels, i, minGagLevel, maxGagLevel, prestigeSounds)
-		if (getCost(strategies[2]) > getCost(x))
-			strategies[2] = x
-	}
-
-	// trying 2 sound 2 drop
-	strategies[3] = false
-	for (const i of traverse(2, minGagLevel, maxGagLevel)) {
-		const x = trySoundDoubleDrop(levels, i, minGagLevel, maxGagLevel, prestigeSounds)
-		if (getCost(strategies[3]) > getCost(x))
-			strategies[3] = x
-	}
-
-	// trying 2 zap 2 squirt
-	strategies[4] = false
-	for (let i = minGagLevel; i < maxGagLevel; i++)
-		for (let j = minGagLevel; j < maxGagLevel; j++)
-			for (let k = 0; k < levels.length; k++)
-				for (let l = 0; l < levels.length; l++) {
-					const x = tryDoubleZap(levels, i, k, j, l, doublePrestigeSquirt, minGagLevel, maxGagLevel, firstZapPrestige, secondZapPrestige)
-					if (getCost(strategies[4]) > getCost(x))
-						strategies[4] = x
-				}
-
-	strategies.sort((x, y) => - getCost(y) + getCost(x))
+	strategies.sort((x, y) => getCost(x) - getCost(y))
 	return strategies
 }
 
@@ -379,14 +336,22 @@ function edit() {
 	const doublePrestigeSquirt = $("#doublepre").is(":checked")
 	const prestigeSounds = parseInt($("#presound").val())
 	const str = $("#gaglevels").val().split("-")
-	const minGagLevel = parseInt(str[0]) - 1, maxGagLevel = parseInt(str[1])
-	const firstZapPrestige = true, secondZapPrestige = true
+	const minGagLevel = parseInt(str[0]), maxGagLevel = parseInt(str[1])
+	const firstZapPrestige = $("#leftpre").is(":checked"), secondZapPrestige = $("#rightpre").is(":checked")
 	const params = { minGagLevel, maxGagLevel, prestigeSounds, doublePrestigeSquirt, firstZapPrestige, secondZapPrestige }
 	const state = generateState(levels)
 	for (let i = 0; i < 4; i++)
 		state[i].lured = $(`#prelured-${i}`).is(":checked") ? 0.65 : ($(`#lured-${i}`).is(":checked") ? 0.5 : 0)
+
+	console.log("start", performance.now())
+	$("#loadertr").removeClass("displaynone")
+	$(".strat").addClass("displaynone")
 	const ans = generateOptimalStrategy(state, params)
-	for (const i in ans) if (ans.hasOwnProperty(i)) {
+	$(".strat").removeClass("displaynone")
+	$("#loadertr").addClass("displaynone")
+	console.log("end", performance.now())
+
+	for (let i = 0; i < ans.length; i++) {
 		$(`#cost${i}`).html(getCost(ans[i]))
 		if (!ans[i]) {
 			$(`.strat${i}`).addClass("displaynone")
@@ -416,9 +381,10 @@ function edit() {
 
 if ($) { // operating with JQuery in browser
 	$(() => {
-		edit()
-		$("input[type=checkbox]").on("click", edit)
-		$("input[type=text]").on("keyup", edit)
+		// edit()
+		// $("input[type=checkbox]").on("click", edit)
+		// $("input[type=text]").on("keyup", edit)
+		$("#edit").on("click", edit)
 	})
 }
 
@@ -437,5 +403,20 @@ function* singleTraverse(maxDepth, minNumber, arr, depth) {
 		for (let i = minNumber; i <= arr[depth]; i++) {
 			arr[depth + 1] = i
 			yield* singleTraverse(maxDepth, minNumber, arr, depth + 1)
+		}
+}
+
+function* getSequence(maxDepth, minNumber, maxNumber) {
+	const arr = []
+	yield* getSequenceSingle(arr, minNumber, maxNumber, 0, maxDepth)
+}
+
+function* getSequenceSingle(arr, minNumber, maxNumber, depth, maxDepth) {
+	if (depth === maxDepth)
+		yield arr.slice(0)
+	else
+		for (let i = minNumber; i <= maxNumber; i++) {
+			arr[depth] = i
+			yield* getSequenceSingle(arr, minNumber, maxNumber, depth + 1, maxDepth)
 		}
 }
