@@ -268,7 +268,7 @@ function updateThrowState(state, gagChoices) {
 	const damageCounter = []
 	for (let i = 0; i < state.length; i++)
 		damageCounter[i] = { damageSequence: [], numberOfGags: 0 }
-	
+
 	const passes = []
 	for (const i of gagChoices) {
 		const { type, level, target, prestige, key } = i
@@ -318,7 +318,7 @@ function updateDropState(state, gagChoices) {
 // Trying: 3 sound 1 lure, 4 sound, 3 sound 1 drop, 2 sound 2 drop, 2 zap 2 squirt,
 // 2 sound 1 zap 1 squirt, 1 sound 1 squirt 1 zap 1 drop
 const relativeCosts = [1, 2, 3, 5, 8, 30, 80, 150]
-const gagMultipliers = { "Sound": 8, "Zap": 10, "Squirt": 4, "Drop": 2 }
+const gagMultipliers = { "Sound": 8, "Zap": 11, "Squirt": 4, "Drop": 2 }
 const gagNames = {
 	"Sound": ["Kazoo", "Bike Horn", "Whistle", "Bugle", "Aoogah", "Trunk", "Fog", "Opera"],
 	"Zap": ["Buzzer", "Carpet", "Balloon", "Battery", "Taser", "Broken TV", "Tesla", "Lightning"],
@@ -352,7 +352,7 @@ function trySoundDrop(targets, gags, params) {
 	const ans = []
 	const len = gags.length - 1
 	for (let j = 0; j < len; j++) ans.push({ type: "Sound", level: gags[j], prestige: i++ < params.prestigeSounds ? "Prestige" : "", target: 4 })
-	ans.push({ type: "Drop", level: gags[len], prestige: "", target: targets[len] })
+	ans.push({ type: "Drop", level: gags[len], prestige: "", target: targets[0] })
 	return ans
 }
 
@@ -361,8 +361,8 @@ function trySoundDoubleDrop(targets, gags, params) {
 	const ans = []
 	const len = gags.length - 2
 	for (let j = 0; j < len; j++) ans.push({ type: "Sound", level: gags[j], prestige: i++ < params.prestigeSounds ? "Prestige" : "", target: 4 })
-	ans.push({ type: "Drop", level: gags[len + 1], prestige: "", target: targets[len - 1] })
-	ans.push({ type: "Drop", level: gags[len], prestige: "", target: targets[len] })
+	ans.push({ type: "Drop", level: gags[len + 1], prestige: "", target: targets[0] })
+	ans.push({ type: "Drop", level: gags[len], prestige: "", target: targets[1] })
 	return ans
 }
 
@@ -388,33 +388,30 @@ function copyState(arr) {
 	return [Object.assign({}, arr[0]), Object.assign({}, arr[1]), Object.assign({}, arr[2]), Object.assign({}, arr[3])]
 }
 
-function test(func, tgt, lvl, lvls, i, params, strategies) {
-	const gags = func(tgt, lvl, params)
-	const state = copyState(lvls)
-	const errors = getState(gags, state)
-	if (getAliveCogs(state).length === 0 && errors.length === 0 && getCost(strategies[i]) > getCost(gags)) {
-		strategies[i] = gags
-	}
-}
-
-function generateOptimalStrategy(levels, params) {
+function generateOptimalStrategy(state, params) {
 	const { minGagLevel, maxGagLevel } = params
 	const strategies = []
-	const strategyFunctions = [ trySoundDrop, trySoundDoubleDrop, tryDoubleZap, tryTyphoon ]
-	const signatures = [ [3,1], [2,2], [1,1,1,1], [1,1,1,1] ]
-	for (let i = 0; i < strategyFunctions.length; i++) {
+	const operations = [
+		{ method: trySoundDrop, signature: [3, 1], targets: 1 },
+		{ method: trySoundDoubleDrop, signature: [2, 2], targets: 2 },
+		{ method: tryDoubleZap, signature: [1, 1, 1, 1], targets: 4 },
+		{ method: tryTyphoon, signature: [1, 1, 1, 1], targets: 3 },
+		{ method: trySound, signature: [3], targets: 0 },
+		{ method: trySound, signature: [4], targets: 0 }
+	]
+	for (let i = 0; i < operations.length; i++) {
 		strategies[i] = false
-		for (const levelSequence of multitraverse(minGagLevel - 1, maxGagLevel - 1, signatures[i]))
-			for (const targetSequence of getSequence(4, 0, 3))
-				test(strategyFunctions[i], targetSequence, levelSequence, levels, i, params, strategies)
+		const op = operations[i]
+		for (const levelSequence of multitraverse(minGagLevel - 1, maxGagLevel - 1, op.signature))
+			for (const targetSequence of getSequence(op.targets, 0, 3)) {
+				const gags = op.method(targetSequence, levelSequence, params)
+				const newState = copyState(state)
+				const errors = getState(gags, newState)
+				if (getAliveCogs(newState).length === 0 && errors.length === 0 && getCost(strategies[i]) > getCost(gags))
+					strategies[i] = gags
+			}
 	}
 
-	for (let i = 3; i < 5; i++) {
-		const num = strategies.length
-		strategies[num] = false
-		for (const levelSequence of traverse(i, minGagLevel - 1, maxGagLevel - 1))
-			test(trySound, false, levelSequence, levels, num, params, strategies)
-	}
 	strategies.sort((x, y) => getCost(x) - getCost(y))
 	return strategies
 }
