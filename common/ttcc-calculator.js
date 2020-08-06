@@ -25,7 +25,7 @@ function generateState(cogLevels) {
 		const V20  = typeof i === "number" ? 0 : (i.indexOf("vs") > -1 ? -1 : (i.indexOf("v2") > -1 ? 1 : 0))
 		const iNum = typeof i === "number" ? i : parseInt(i)
 		const sq = iNum * iNum
-		if (isNaN(iNum) || iNum < 1) continue
+		if (isNaN(iNum)) continue
 		const baseHealth = FS ? sq + iNum + 1 : (OA ? sq + iNum * 5 + 4 : sq + iNum * 3 + 2)
 		const startHealth = Math.floor(baseHealth * (exe ? 1.5 : 1) * (V20 === -1 ? 0.5 : 1))
 		state.push({ level: iNum, life: startHealth, startLife: startHealth, v2state: V20, lured: 0, soaked: false, trapped: 0 })
@@ -303,8 +303,9 @@ function updateDropState(state, gagChoices) {
 	for (let i = 0; i < state.length; i++) {
 		if (damageCounter[i]) {
 			if (damageCounter[i].numberOfGags > 0) {
+				const dsum = sum(damageCounter[i].damageSequence)
 				if (damageCounter[i].numberOfGags > 1)
-					damageCounter[i].damageSequence.push(Math.ceil(damageCounter[i].damage * (damageCounter[i].numberOfGags + 1) / 10))
+					damageCounter[i].damageSequence.push(Math.ceil(dsum * (damageCounter[i].numberOfGags + 1) / 10))
 				if (!state[i].lured)
 					for (let j of damageCounter[i].damageSequence)
 						dealDamage(state[i], j)
@@ -345,6 +346,10 @@ function getCost(gags) {
 function trySound(targets, gags, params) {
 	let i = 0
 	return gags.map(x => ({ type: "Sound", level: x, prestige: i++ < params.prestigeSounds ? "Prestige" : "", target: 4 }))
+}
+
+function tryQuadDrop(targets, gags, params) {
+	return gags.map((v, k) => ({ type: "Drop", level: v, prestige: "", target: targets[k] }))
 }
 
 function trySoundDrop(targets, gags, params) {
@@ -397,7 +402,8 @@ function generateOptimalStrategy(state, params) {
 		{ method: tryDoubleZap, signature: [1, 1, 1, 1], targets: 4 },
 		{ method: tryTyphoon, signature: [1, 1, 1, 1], targets: 3 },
 		{ method: trySound, signature: [3], targets: 0 },
-		{ method: trySound, signature: [4], targets: 0 }
+		{ method: trySound, signature: [4], targets: 0 },
+		{ method: tryQuadDrop, signature: [4], targets: 4 }
 	]
 	for (let i = 0; i < operations.length; i++) {
 		strategies[i] = false
@@ -473,7 +479,7 @@ function edit() {
 	const firstZapPrestige = $("#leftpre").is(":checked"), secondZapPrestige = $("#rightpre").is(":checked")
 	const params = { minGagLevel, maxGagLevel, prestigeSounds, doublePrestigeSquirt, firstZapPrestige, secondZapPrestige }
 	const state = generateState(levels)
-	for (let i = 0; i < 4; i++)
+	for (let i = 0; i < state.length; i++)
 		state[i].lured = $(`#prelured-${i}`).is(":checked") ? 0.65 : ($(`#lured-${i}`).is(":checked") ? 0.5 : 0)
 
 	$(".strat").addClass("displaynone")
