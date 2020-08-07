@@ -345,7 +345,7 @@ function updateDropState(state, gagChoices) {
 // Finding best combo for killing this set
 // Trying: 3 sound 1 lure, 4 sound, 3 sound 1 drop, 2 sound 2 drop, 2 zap 2 squirt,
 // 2 sound 1 zap 1 squirt, 1 sound 1 squirt 1 zap 1 drop
-const relativeCosts = [1, 2, 3, 5, 8, 30, 80, 150, 100]
+const relativeCosts = [1, 2, 3, 5, 8, 30, 80, 150, 230]
 const gagMultipliers = { "Sound": 8, "Zap": 11, "Squirt": 4, "Drop": 2 }
 const gagNames = {
 	"Sound": ["Kazoo", "Bike Horn", "Whistle", "Bugle", "Aoogah", "Trunk", "Fog", "Opera"],
@@ -437,19 +437,21 @@ function copyState(arr) {
 }
 
 function generateOptimalStrategy(state, params) {
-	const { minGagLevel, maxGagLevel } = params
+	const { minGagLevel, maxGagLevel, rainEnabled } = params
 	const strategies = []
 	const operations = [
 		{ method: trySoundDrop, signature: [3, 1], targets: 1 },
 		{ method: trySoundDoubleDrop, signature: [2, 2], targets: 2 },
 		{ method: tryDoubleZap, signature: [1, 1, 1, 1], targets: 4 },
 		{ method: tryTyphoon, signature: [1, 1, 1, 1], targets: 3 },
-		{ method: tryRainTyphoon, signature: [1, 1, 1], targets: 3 },
 		{ method: trySound, signature: [3], targets: 0 },
 		{ method: trySound, signature: [4], targets: 0 },
-		{ method: tryQuadDrop, signature: [4], targets: 4 },
-		{ method: tryRainDrop, signature: [3], targets: 1 }
+		{ method: tryQuadDrop, signature: [4], targets: 4 }
 	]
+	if (rainEnabled) {
+		operations.push({ method: tryRainDrop, signature: [3], targets: 1 })
+		operations.push({ method: tryRainTyphoon, signature: [1, 1, 1], targets: 3 })
+	}
 	for (let i = 0; i < operations.length; i++) {
 		strategies[i] = false
 		const op = operations[i]
@@ -523,7 +525,8 @@ function edit() {
 	const str = $("#gaglevels").val().split("-")
 	const minGagLevel = parseInt(str[0]), maxGagLevel = parseInt(str[1])
 	const firstZapPrestige = $("#leftpre").is(":checked"), secondZapPrestige = $("#rightpre").is(":checked")
-	const params = { minGagLevel, maxGagLevel, prestigeSounds, doublePrestigeSquirt, firstZapPrestige, secondZapPrestige }
+	const rainEnabled = $("#rain").is(":checked")
+	const params = { minGagLevel, maxGagLevel, prestigeSounds, doublePrestigeSquirt, firstZapPrestige, secondZapPrestige, rainEnabled }
 	const state = generateState(levels)
 	for (let i = 0; i < state.length; i++)
 		state[i].lured = $(`#prelured-${i}`).is(":checked") ? 0.65 : ($(`#lured-${i}`).is(":checked") ? 0.5 : 0)
