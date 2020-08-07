@@ -290,27 +290,54 @@ function updateDropState(state, gagChoices) {
 		damageCounter[i] = { damageSequence: [], numberOfGags: 0 }
 
 	const passes = []
+	let rainEnabled = false
 	for (const i of gagChoices) {
 		const { type, level, target, key } = i
 		if (type !== "Drop") continue
-		if (state[target].life === 0) {
-			passes.push(key)
-			continue
+		if (level === 8) { // rain hardcode
+			if (getAliveCogs(state).length === 0 || rainEnabled === true) {
+				passes.push(key)
+				continue
+			}
+			rainEnabled = true
+			for (const j of damageCounter)
+				j.damageSequence.push(20)
+		} else {
+			if (state[target].life === 0) {
+				passes.push(key)
+				continue
+			}
+			damageCounter[target].damageSequence.push(get("Drop", level, state[target].level))
+			damageCounter[target].numberOfGags++
 		}
-		damageCounter[target].damageSequence.push(get("Drop", level, state[target].level))
-		damageCounter[target].numberOfGags++
 	}
-	for (let i = 0; i < state.length; i++) {
-		if (damageCounter[i]) {
-			if (damageCounter[i].numberOfGags > 0) {
-				const dsum = sum(damageCounter[i].damageSequence)
-				if (damageCounter[i].numberOfGags > 1)
-					damageCounter[i].damageSequence.push(Math.ceil(dsum * (damageCounter[i].numberOfGags + 1) / 10))
-				if (!state[i].lured)
-					for (let j of damageCounter[i].damageSequence)
-						dealDamage(state[i], j)
+	if (!rainEnabled) {
+		for (let i = 0; i < state.length; i++) {
+			if (damageCounter[i]) {
+				if (damageCounter[i].numberOfGags > 0) {
+					const dsum = sum(damageCounter[i].damageSequence)
+					if (damageCounter[i].numberOfGags > 1)
+						damageCounter[i].damageSequence.push(Math.ceil(dsum * (damageCounter[i].numberOfGags + 1) / 10))
+				}
 			}
 		}
+	} else {
+		let combo = 0
+		for (let i = 0; i < state.length; i++) {
+			if (damageCounter[i].numberOfGags >= 1) {
+				const dsum = sum(damageCounter[i].damageSequence)
+				const comboOnThis = Math.ceil(dsum * (damageCounter[i].numberOfGags + 2) / 10)
+				if (combo < comboOnThis)
+					combo = comboOnThis
+			}
+		}
+		for (const i of damageCounter)
+			i.damageSequence.push(combo)
+	}
+	for (let i = 0; i < state.length; i++) {
+		if (!state[i].lured)
+			for (let j of damageCounter[i].damageSequence)
+				dealDamage(state[i], j)
 	}
 	return passes
 }
@@ -318,13 +345,13 @@ function updateDropState(state, gagChoices) {
 // Finding best combo for killing this set
 // Trying: 3 sound 1 lure, 4 sound, 3 sound 1 drop, 2 sound 2 drop, 2 zap 2 squirt,
 // 2 sound 1 zap 1 squirt, 1 sound 1 squirt 1 zap 1 drop
-const relativeCosts = [1, 2, 3, 5, 8, 30, 80, 150]
+const relativeCosts = [1, 2, 3, 5, 8, 30, 80, 150, 100]
 const gagMultipliers = { "Sound": 8, "Zap": 11, "Squirt": 4, "Drop": 2 }
 const gagNames = {
 	"Sound": ["Kazoo", "Bike Horn", "Whistle", "Bugle", "Aoogah", "Trunk", "Fog", "Opera"],
 	"Zap": ["Buzzer", "Carpet", "Balloon", "Battery", "Taser", "Broken TV", "Tesla", "Lightning"],
 	"Squirt": ["Flower", "Glass", "Squirtgun", "Water Balloon", "Seltzer", "Hose", "Storm", "Geyser"],
-	"Drop": ["Flower Pot", "Sandbag", "Bowling", "Anvil", "Big Weight", "Safe", "Boulder", "Piano"]
+	"Drop": ["Flower Pot", "Sandbag", "Bowling", "Anvil", "Big Weight", "Safe", "Boulder", "Piano", "Summon Rain"]
 }
 const gagTargets = ["Left", "Mid Left", "Mid Right", "Right"]
 
@@ -361,6 +388,13 @@ function trySoundDrop(targets, gags, params) {
 	return ans
 }
 
+function tryRainDrop(targets, gags, params) {
+	const ans = []
+	for (let j = 0; j < gags.length; j++) ans.push({ type: "Drop", level: gags[j], prestige: "", target: targets[0] })
+	ans.push({ type: "Drop", level: 8, prestige: "", target: 4 })
+	return ans
+}
+
 function trySoundDoubleDrop(targets, gags, params) {
 	let i = 0
 	const ans = []
@@ -389,6 +423,15 @@ function tryTyphoon(targets, gags, params) {
 	return ans
 }
 
+function tryRainTyphoon(targets, gags, params) {
+	const ans = []
+	ans.push({ type: "Zap", level: gags[0], prestige: (params.firstZapPrestige || params.secondZapPrestige) ? "Prestige" : "", target: targets[0] })
+	ans.push({ type: "Squirt", level: gags[1], prestige: "Prestige", target: targets[1] })
+	ans.push({ type: "Drop", level: gags[2], prestige: "", target: targets[2] })
+	ans.push({ type: "Drop", level: 8, prestige: "", target: 4 })
+	return ans
+}
+
 function copyState(arr) {
 	return [Object.assign({}, arr[0]), Object.assign({}, arr[1]), Object.assign({}, arr[2]), Object.assign({}, arr[3])]
 }
@@ -401,9 +444,11 @@ function generateOptimalStrategy(state, params) {
 		{ method: trySoundDoubleDrop, signature: [2, 2], targets: 2 },
 		{ method: tryDoubleZap, signature: [1, 1, 1, 1], targets: 4 },
 		{ method: tryTyphoon, signature: [1, 1, 1, 1], targets: 3 },
+		{ method: tryRainTyphoon, signature: [1, 1, 1], targets: 3 },
 		{ method: trySound, signature: [3], targets: 0 },
 		{ method: trySound, signature: [4], targets: 0 },
-		{ method: tryQuadDrop, signature: [4], targets: 4 }
+		{ method: tryQuadDrop, signature: [4], targets: 4 },
+		{ method: tryRainDrop, signature: [3], targets: 1 }
 	]
 	for (let i = 0; i < operations.length; i++) {
 		strategies[i] = false
@@ -440,7 +485,7 @@ function install(state, params) {
 		} else {
 			$(`.strat${i}`).removeClass("displaynone")
 			const text = ans[i].map(x => {
-				if (x.type === "Sound")
+				if (x.target === 4)
 					return gagNames[x.type][x.level]
 				else
 					return gagNames[x.type][x.level] + " " + gagTargets[x.target]
@@ -464,6 +509,7 @@ if ($) { // operating with JQuery in browser
 		// $("input[type=checkbox]").on("click", edit)
 		// $("input[type=text]").on("keyup", edit)
 		$("#edit").on("click", edit)
+		$(".strat").addClass("displaynone")
 	})
 
 }
