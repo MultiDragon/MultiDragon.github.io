@@ -542,7 +542,7 @@ function generateOptimalStrategy(state, params) {
 				const gags = op.method(targetSequence, levelSequence, params)
 				const newState = copyState(state)
 				const data = getState(gags, newState)
-				if (getAliveCogs(newState).length === 0 && getCost(strategies[i].gags, data) > getCost(gags, data))
+				if (getAliveCogs(newState).length === 0 && getCost(strategies[i].gags, strategies[i].data) > getCost(gags, data))
 					strategies[i] = { gags, data }
 			}
 	}
