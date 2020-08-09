@@ -405,11 +405,13 @@ function updateDropState(state, gagChoices) {
 				}
 			}
 		}
-	} else if (firstTarget) {
+	} else if (firstTarget !== false) {
 		const counter = damageCounter[firstTarget]
-		let combo = Math.ceil(sum(counter.damageSequence) * (damageCounter[i].numberOfGags + 2) / 10)
+		console.log(counter)
+		let combo = Math.ceil(sum(counter.damageSequence) * (counter.numberOfGags + 2) / 10)
 		for (const i of damageCounter)
 			i.damageSequence.push(combo)
+		console.log(damageCounter)
 	}
 	for (let i = 0; i < state.length; i++) {
 		if (!state[i].lured)
@@ -422,7 +424,7 @@ function updateDropState(state, gagChoices) {
 // Finding best combo for killing this set
 // Trying: 3 sound 1 lure, 4 sound, 3 sound 1 drop, 2 sound 2 drop, 2 zap 2 squirt,
 // 2 sound 1 zap 1 squirt, 1 sound 1 squirt 1 zap 1 drop
-const relativeCosts = [1, 2, 3, 5, 8, 30, 80, 150, 230]
+const relativeCosts = [1, 2, 3, 5, 8, 30, 80, 150, 50]
 const gagMultipliers = { "Sound": 8, "Zap": 11, "Squirt": 4, "Drop": 2 }
 const gagNames = {
 	"Sound": ["Kazoo", "Bike Horn", "Whistle", "Bugle", "Aoogah", "Trunk", "Fog", "Opera"],
