@@ -370,6 +370,7 @@ function updateDropState(state, gagChoices) {
 
 	const passes = []
 	let rainEnabled = false
+	let firstTarget = false
 	const accuracy = [-1, -1, -1, -1]
 	for (const i of gagChoices) {
 		const { type, level, target, key } = i
@@ -390,6 +391,8 @@ function updateDropState(state, gagChoices) {
 			accuracy[target] = Math.max(accuracy[target], getStateAccuracy(i, state))
 			damageCounter[target].damageSequence.push(get("Drop", level, state[target].level))
 			damageCounter[target].numberOfGags++
+			if (!firstTarget)
+				firstTarget = target
 		}
 	}
 	if (!rainEnabled) {
@@ -402,16 +405,9 @@ function updateDropState(state, gagChoices) {
 				}
 			}
 		}
-	} else {
-		let combo = 0
-		for (let i = 0; i < state.length; i++) {
-			if (damageCounter[i].numberOfGags >= 1) {
-				const dsum = sum(damageCounter[i].damageSequence)
-				const comboOnThis = Math.ceil(dsum * (damageCounter[i].numberOfGags + 2) / 10)
-				if (combo < comboOnThis)
-					combo = comboOnThis
-			}
-		}
+	} else if (firstTarget) {
+		const counter = damageCounter[firstTarget]
+		let combo = Math.ceil(sum(counter.damageSequence) * (damageCounter[i].numberOfGags + 2) / 10)
 		for (const i of damageCounter)
 			i.damageSequence.push(combo)
 	}
