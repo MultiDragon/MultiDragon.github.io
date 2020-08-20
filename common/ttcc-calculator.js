@@ -69,6 +69,7 @@ function generateState(cogLevels) {
 		state.push({
 			level: iNum, life: startHealth, startLife: startHealth,
 			lured: 0, soaked: false, trapped: 0, stunned: 0,
+			killed: false,
 			v2state: V20, accuracyDebuff: (exe ? 5 : 0) + (OA ? 10 : 0) - (FS ? 10 : 0), maxDef: exe ? 70 : 60, exe
 		})
 	}
@@ -147,7 +148,7 @@ function updateTrapState(state, gagChoices) {
 	return { passes, accuracy: 1 }
 }
 
-function dealDamage(cog, damage) {
+function dealDamage(cog, damage, killing = false) {
 	if (cog.life === 0)
 		return
 	else {
@@ -159,6 +160,8 @@ function dealDamage(cog, damage) {
 		if (cog.life === 0 && cog.v2state === 1) {
 			cog.v2state = -1
 			cog.life = Math.floor(cog.startLife / 2)
+			if (killing)
+				cog.killed = true
 		}
 	}
 }
@@ -323,12 +326,13 @@ function updateZapState(state, gagChoices) {
 				for (const k of targetOrder) {
 					if ((j === 0 || (current + k !== target && !jumpedOnto[current + k])) && // can't double jump or go back to target
 							state[current + k] && // can't jump to nonexistent cogs
-							state[current + k].life > 0 && // can't jump to dead cog
-							state[current + k].soaked) { // can't jump to dry cog
+							(state[current + k].life > 0 || j === 0) && // can't jump to dead cog
+							state[current + k].soaked &&
+							!state[current + k].killed) { // can't jump to dry cog
 						current += k
 						if (j !== 0) jumpedOnto[current] = true
 						const dmg = Math.ceil(damage * (3 - j * multiplier))
-						dealDamage(state[current], dmg)
+						dealDamage(state[current], dmg, true)
 						good = true
 						break
 					}
@@ -425,7 +429,7 @@ function updateDropState(state, gagChoices) {
 // Trying: 3 sound 1 lure, 4 sound, 3 sound 1 drop, 2 sound 2 drop, 2 zap 2 squirt,
 // 2 sound 1 zap 1 squirt, 1 sound 1 squirt 1 zap 1 drop
 const relativeCosts = [1, 2, 3, 5, 8, 30, 80, 150, 50]
-const gagMultipliers = { "Sound": 8, "Zap": 11, "Squirt": 4, "Drop": 2 }
+const gagMultipliers = { "Sound": 10, "Zap": 15, "Squirt": 4, "Drop": 5 }
 const gagNames = {
 	"Sound": ["Kazoo", "Bike Horn", "Whistle", "Bugle", "Aoogah", "Trunk", "Fog", "Opera"],
 	"Zap": ["Buzzer", "Carpet", "Balloon", "Battery", "Taser", "Broken TV", "Tesla", "Lightning"],
