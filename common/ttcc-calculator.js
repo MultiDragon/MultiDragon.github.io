@@ -10,7 +10,7 @@ const damages = {
 	"PrestigeZap": [ 4, 6, 10, 16, 21, 40, 66, 80 ],
 	"Throw": [ 7, 11, 18, 30, 45, 75, 110, 145 ],
 	"PrestigeThrow": [ 8, 13, 20, 33, 50, 83, 121, 160 ],
-	"Drop": [ 12, 20, 35, 55, 75, 125, 180, 220 ],
+	"Drop": [ 12, 20, 35, 55, 75, 125, 180, 220, 20 ],
 	"PrestigeDrop": [ 12, 20, 35, 55, 75, 125, 180, 220 ]
 }
 
@@ -386,7 +386,7 @@ function updateDropState(state, gagChoices) {
 			}
 			rainEnabled = true
 			for (const j of damageCounter)
-				j.damageSequence.push(20)
+				j.damageSequence.push(get("Drop", 8, 0))
 		} else {
 			if (state[target].life === 0) {
 				passes.push(key)
@@ -411,11 +411,9 @@ function updateDropState(state, gagChoices) {
 		}
 	} else if (firstTarget !== false) {
 		const counter = damageCounter[firstTarget]
-		console.log(counter)
 		let combo = Math.ceil(sum(counter.damageSequence) * (counter.numberOfGags + 2) / 10)
 		for (const i of damageCounter)
 			i.damageSequence.push(combo)
-		console.log(damageCounter)
 	}
 	for (let i = 0; i < state.length; i++) {
 		if (!state[i].lured)
