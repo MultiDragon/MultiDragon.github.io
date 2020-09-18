@@ -9,9 +9,9 @@ const damages = {
 	"Zap": [ 4, 6, 10, 16, 24, 40, 66, 80 ],
 	"PrestigeZap": [ 4, 6, 10, 16, 24, 40, 66, 80 ],
 	"Throw": [ 7, 11, 18, 30, 45, 75, 110, 145 ],
-	"PrestigeThrow": [ 8, 13, 20, 33, 50, 83, 121, 160 ],
-	"Drop": [ 12, 20, 35, 55, 75, 125, 180, 220, 20 ],
-	"PrestigeDrop": [ 12, 20, 35, 55, 75, 125, 180, 220 ]
+	"PrestigeThrow": [ 8, 13, 21, 35, 52, 87, 127, 167 ],
+	"Drop": [ 12, 20, 35, 55, 80, 125, 180, 220, 20 ],
+	"PrestigeDrop": [ 12, 20, 35, 55, 80, 125, 180, 220 ]
 }
 
 const accuracies = {
@@ -425,7 +425,7 @@ function updateDropState(state, gagChoices) {
 
 // Finding best combo for killing this set
 // Trying: 3 sound 1 lure, 4 sound, 3 sound 1 drop, 2 sound 2 drop, 2 zap 2 squirt,
-// 2 sound 1 zap 1 squirt, 1 sound 1 squirt 1 zap 1 drop
+// 1 sound 1 squirt 1 zap 1 drop, 3 drop rain, 1 squirt 1 zap drop rain, 2 drop rain sound
 const relativeCosts = [1, 2, 3, 5, 8, 30, 80, 150, 50]
 const gagMultipliers = { "Sound": 10, "Zap": 15, "Squirt": 4, "Drop": 5 }
 const gagNames = {
